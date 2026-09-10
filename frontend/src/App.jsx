@@ -1,3 +1,6 @@
+// 메시지 목록을 State로 관리하기 위해 useState Hook을 가져옵니다.
+import { useState } from 'react';
+
 // 챗봇 화면의 주요 스타일을 가져옵니다.
 import './App.css';
 
@@ -6,57 +9,51 @@ import ChatHeader from './components/ChatHeader';
 import MessageList from './components/MessageList';
 import ChatInput from './components/ChatInput';
 
-// 5차시에서는 State 대신 고정된 예제 메시지 배열을 사용합니다.
-// 6차시에서 이 배열을 useState로 관리하도록 변경할 예정입니다.
-const sampleMessages = [
+// 애플리케이션이 처음 표시될 때 사용할 초기 메시지입니다.
+const initialMessages = [
   {
     id: 1,
     role: 'assistant',
     content: '안녕하세요. AI 학습 도우미입니다. 무엇을 도와드릴까요?'
-  },
-  {
-    id: 2,
-    role: 'user',
-    content: 'React 컴포넌트는 어떤 역할을 하나요?'
-  },
-  {
-    id: 3,
-    role: 'assistant',
-    content: 'React 컴포넌트는 화면의 일부를 독립적인 단위로 구성하고 재사용할 수 있게 합니다.'
-  },
-  {
-    id: 4,
-    role: 'user',
-    content: '메시지 목록은 어떤 방식으로 표시하나요?'
-  },
-  {
-    id: 5,
-    role: 'assistant',
-    content: '메시지 배열을 map()으로 순회해 각 항목을 MessageBubble 컴포넌트로 렌더링할 수 있습니다.'
-  }, 
-  {
-    id: 6,
-    role: 'user',
-    content: '스크롤 영역도 확인해 보고 싶습니다.'
-  },
-  {
-    id: 7,
-    role: 'assistant',
-    content: '메시지가 많아지면 가운데 MessageList 영역에 세로 스크롤이 나타납니다.'
-  },
-  {
-    id: 8,
-    role: 'user',
-    content: '헤더와 입력창은 그대로 유지되나요?'
-  },
-  {
-    id: 9,
-    role: 'assistant',
-    content: '네. 메시지 목록만 flex: 1과 overflow-y: auto를 사용하므로 해당 영역만 스크롤됩니다.'
   }
 ];
 
 function App() {
+  // 전체 대화 메시지를 배열 State로 관리합니다.
+  const [messages, setMessages] = useState(initialMessages);
+
+  // ChatInput에서 사용자가 전송한 질문을 전달받습니다.
+  const handleSendMessage = (question) => {
+    // 사용자 메시지 객체를 생성합니다.
+    const userMessage = {
+      id: Date.now(),
+      role: 'user',
+      content: question
+    };
+
+    // 최신 메시지 배열 뒤에 사용자 메시지를 추가합니다.
+    setMessages((previousMessages) => [
+      ...previousMessages,
+      userMessage
+    ]);
+
+    // 실제 API 통신 전 단계이므로 500ms 후 로컬 임시 답변을 추가합니다.
+    setTimeout(() => {
+      // OpenAI API 결과가 아닌 학습용 임시 AI 메시지입니다.
+      const assistantMessage = {
+        id: Date.now(),
+        role: 'assistant',
+        content: `임시 답변입니다. 입력한 질문은 "${question}"입니다.`
+      };
+
+      // 가장 최신 messages State를 기준으로 AI 메시지를 추가합니다.
+      setMessages((previousMessages) => [
+        ...previousMessages,
+        assistantMessage
+      ]);
+    }, 500);
+  };
+
   return (
     // 브라우저 전체 배경과 중앙 정렬을 담당하는 영역입니다.
     <div className="app-shell">
@@ -67,11 +64,11 @@ function App() {
           subtitle="OpenAI API + FastAPI + React"
         />
 
-        {/* 정적 예제 메시지를 MessageList에 Props로 전달합니다. */}
-        <MessageList messages={sampleMessages} />
+        {/* State가 변경될 때 최신 messages Props가 전달됩니다. */}
+        <MessageList messages={messages} />
 
-        {/* 현재 차시에서는 UI만 제공하고 실제 전송은 6차시에 구현합니다. */}
-        <ChatInput />
+        {/* 사용자가 질문을 보내면 handleSendMessage가 실행됩니다. */}
+        <ChatInput onSendMessage={handleSendMessage} />
       </main>
     </div>
   );
