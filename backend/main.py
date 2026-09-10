@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from openai import AsyncOpenAI
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 # ---------------------------------------------------------
 # 1. 프로젝트 설정과 .env 로드
@@ -19,7 +19,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 ENV_PATH = PROJECT_ROOT / ".env"
 
 # .env의 값을 현재 Python 프로세스에 로드합니다.
-load_dotenv(dotenv_path=ENV_PATH)
+load_dotenv(dotenv_path=ENV_PATH, override=True)
 
 # .env에서 OpenAI API Key를 가져옵니다.
 api_key = os.getenv("OPENAI_API_KEY")
@@ -73,12 +73,26 @@ app.add_middleware(
 # ---------------------------------------------------------
 
 
-# POST /chat에서 받을 Request Body의 구조입니다.
+# POST /chat에서 받을 Request Body의 구조와 추가 검증 규칙을 정의합니다.
 class ChatRequest(BaseModel):
-    # 사용자 질문은 1자 이상 1000자 이하의 문자열만 허용합니다.
+    # 먼저 기본 길이 규칙을 적용합니다.
     message: str = Field(
         min_length=1, max_length=1000, description="사용자가 챗봇에 전달하는 질문"
     )
+
+    # message 필드의 기본 타입·길이 검증 이후 추가 규칙을 적용합니다.
+    @field_validator("message")
+    @classmethod
+    def validate_message(cls, value: str) -> str:
+        # 사용자 입력 앞뒤의 불필요한 공백을 제거합니다.
+        cleaned_value = value.strip()
+
+        # 공백 제거 후 내용이 없으면 유효하지 않은 질문으로 처리합니다.
+        if not cleaned_value:
+            raise ValueError("message는 공백만 입력할 수 없습니다.")
+
+        # 정리된 문자열을 최종 필드 값으로 반환합니다.
+        return cleaned_value
 
 
 # POST /chat이 반환할 Response Body의 구조입니다.
