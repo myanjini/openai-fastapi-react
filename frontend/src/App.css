@@ -1,0 +1,176 @@
+/* 브라우저 화면 중앙에 챗봇 카드를 배치합니다. */
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+/* 헤더, 메시지 목록, 입력 폼을 세로 방향으로 배치하는 챗봇 본체입니다. */
+.chat-card {
+  width: min(100%, 900px);
+  height: min(80vh, 760px);
+  min-height: 560px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+}
+
+/* 챗봇 서비스의 제목 영역입니다. */
+.chat-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.chat-header h1 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.chat-header p {
+  margin: 6px 0 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+/* 대화 내용이 표시되는 스크롤 영역입니다. */
+.message-list {
+  /* 남은 세로 공간을 모두 차지합니다. */
+  flex: 1;
+
+  /* 메시지가 영역보다 많아지면 세로 스크롤을 표시합니다. */
+  overflow-y: auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 24px;
+  background: #f9fafb;
+}
+
+/* 메시지 한 줄의 전체 폭과 정렬을 담당합니다. */
+.message-row {
+  display: flex;
+  width: 100%;
+}
+
+/* AI 메시지는 왼쪽에 배치합니다. */
+.message-row.assistant {
+  justify-content: flex-start;
+}
+
+/* 사용자 메시지는 오른쪽에 배치합니다. */
+.message-row.user {
+  justify-content: flex-end;
+}
+
+/* 공통 메시지 말풍선 스타일입니다. */
+.message-bubble {
+  max-width: min(75%, 620px);
+  padding: 12px 14px;
+  border-radius: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+/* AI 메시지의 시각적 스타일입니다. */
+.message-row.assistant .message-bubble {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+}
+
+/* 사용자 메시지의 시각적 스타일입니다. */
+.message-row.user .message-bubble {
+  background: #dbeafe;
+  border: 1px solid #bfdbfe;
+}
+
+.message-sender {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.82rem;
+}
+
+.message-content {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* 화면 아래쪽의 사용자 입력 영역입니다. */
+.chat-input-form {
+  display: flex;
+  gap: 10px;
+  padding: 16px;
+  border-top: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.chat-input-form input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  outline: none;
+}
+
+/* 키보드 사용자가 현재 입력 위치를 구분할 수 있도록 포커스 스타일을 제공합니다. */
+.chat-input-form input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.chat-input-form button {
+  padding: 0 20px;
+  border: 0;
+  border-radius: 10px;
+  background: #2563eb;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.chat-input-form button:hover {
+  background: #1d4ed8;
+}
+
+/* 시각적으로는 숨기되 스크린 리더는 읽을 수 있는 접근성용 클래스입니다. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 폭이 좁은 화면에서는 카드가 화면 대부분을 사용하도록 조정합니다. */
+@media (max-width: 640px) {
+  .app-shell {
+    padding: 0;
+  }
+
+  .chat-card {
+    width: 100%;
+    height: 100vh;
+    min-height: 100vh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .message-bubble {
+    max-width: 88%;
+  }
+
+  .chat-input-form button {
+    padding: 0 16px;
+  }
+}

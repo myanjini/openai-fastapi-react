@@ -1,0 +1,26 @@
+/* 모든 요소의 크기 계산에 border와 padding을 포함합니다. */
+* {
+  box-sizing: border-box;
+}
+
+/* 브라우저의 기본 body 여백을 제거하고 전체 화면 높이를 확보합니다. */
+html,
+body,
+#root {
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  /* 별도 웹 폰트 설치 없이 운영체제 기본 산세리프 글꼴을 사용합니다. */
+  font-family: Arial, "Malgun Gothic", sans-serif;
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+button,
+input {
+  /* 폼 요소도 본문과 같은 글꼴을 사용합니다. */
+  font: inherit;
+}
