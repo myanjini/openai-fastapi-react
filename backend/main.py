@@ -19,7 +19,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 ENV_PATH = PROJECT_ROOT / ".env"
 
 # .env의 값을 현재 Python 프로세스에 로드합니다.
-load_dotenv(dotenv_path=ENV_PATH)
+load_dotenv(dotenv_path=ENV_PATH, override=True)
 
 # .env에서 OpenAI API Key를 가져옵니다.
 api_key = os.getenv("OPENAI_API_KEY")
