@@ -174,3 +174,18 @@
     padding: 0 16px;
   }
 }
+
+
+/* 헤더의 현재 상태 안내 문구입니다. */
+.chat-status {
+  font-weight: 700;
+}
+
+/* 메시지 작성 시각을 본문보다 작게 표시합니다. */
+.message-time {
+  display: block;
+  margin-top: 8px;
+  color: #6b7280;
+  font-size: 0.75rem;
+  text-align: right;
+}
