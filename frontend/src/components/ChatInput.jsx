@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 // 부모에서 메시지 전송 함수와 로딩 상태를 전달받습니다.
-function ChatInput({ onSendMessage, isLoading }) {
+function ChatInput({ onSendMessage, isLoading = false }) {
   // 입력창의 현재 값을 State로 관리합니다.
   const [question, setQuestion] = useState('');
 
@@ -38,7 +38,11 @@ function ChatInput({ onSendMessage, isLoading }) {
         id="message-input"
         name="message"
         type="text"
-        placeholder="메시지를 입력하세요."
+        placeholder={
+          isLoading
+            ? 'AI 답변을 기다리는 중입니다.'
+            : '메시지를 입력하세요.'
+        }
         autoComplete="off"
         value={question}
         onChange={handleChange}

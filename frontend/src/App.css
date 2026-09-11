@@ -174,3 +174,26 @@
     padding: 0 16px;
   }
 }
+
+
+/* API 요청 중 비활성화된 입력창을 시각적으로 구분합니다. */
+.chat-input-form input:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+}
+
+/* 전송할 수 없는 상태의 버튼 스타일입니다. */
+.chat-input-form button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* 비활성화 버튼에서는 hover 색상 변경을 적용하지 않습니다. */
+.chat-input-form button:disabled:hover {
+  background: #2563eb;
+}
+
+/* 서버 응답을 기다리는 동안 표시되는 AI 로딩 말풍선입니다. */
+.loading-bubble {
+  opacity: 0.75;
+}

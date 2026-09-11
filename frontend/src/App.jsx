@@ -1,12 +1,15 @@
-// 메시지와 로딩 상태를 관리하기 위해 useState Hook을 가져옵니다.
+// 메시지 배열과 요청 상태를 React State로 관리하기 위해 useState를 가져옵니다.
 import { useState } from 'react';
+
+// FastAPI /chat 호출 로직을 별도 모듈에서 가져옵니다.
+import { sendChatMessage } from './api/chatApi';
 
 import './App.css';
 import ChatHeader from './components/ChatHeader';
 import MessageList from './components/MessageList';
 import ChatInput from './components/ChatInput';
 
-// 최초 화면에 표시할 안내 메시지입니다.
+// 애플리케이션 최초 표시 시 사용할 초기 안내 메시지입니다.
 const initialMessages = [
   {
     id: 1,
@@ -16,47 +19,70 @@ const initialMessages = [
 ];
 
 function App() {
-  // 전체 대화 메시지를 State로 관리합니다.
+  // 전체 대화 메시지를 배열 State로 관리합니다.
   const [messages, setMessages] = useState(initialMessages);
 
-  // 임시 AI 답변을 기다리는 상태인지 관리합니다.
+  // 현재 FastAPI 응답을 기다리고 있는지 관리합니다.
   const [isLoading, setIsLoading] = useState(false);
 
-  // 사용자가 질문을 전송하면 실행됩니다.
-  const handleSendMessage = (question) => {
-    // 중복 전송을 막기 위해 답변 대기 상태로 변경합니다.
-    setIsLoading(true);
+  // ChatInput에서 사용자가 전송한 질문을 전달받아 실제 API를 호출합니다.
+  const handleSendMessage = async (question) => {
+    // 이미 요청을 처리 중이면 중복 요청을 시작하지 않습니다.
+    if (isLoading) {
+      return;
+    }
 
-    // 사용자 질문을 메시지 객체로 구성합니다.
+    // 사용자 질문을 화면에 표시할 메시지 객체로 만듭니다.
     const userMessage = {
       id: Date.now(),
       role: 'user',
       content: question
     };
 
-    // 이전 메시지 뒤에 사용자 질문을 추가합니다.
+    // 사용자 메시지는 네트워크 응답을 기다리기 전에 즉시 추가합니다.
     setMessages((previousMessages) => [
       ...previousMessages,
       userMessage
     ]);
 
-    // 실제 API 응답 시간을 흉내 내는 학습용 타이머입니다.
-    setTimeout(() => {
+    // API 요청 시작 상태를 화면에 반영합니다.
+    setIsLoading(true);
+
+    try {
+      // Axios를 이용하는 별도 API 함수가 FastAPI /chat을 호출합니다.
+      const answer = await sendChatMessage(question);
+
+      // FastAPI가 반환한 answer 문자열을 AI 메시지로 만듭니다.
       const assistantMessage = {
-        id: Date.now(),
+        id: Date.now() + 1,
         role: 'assistant',
-        content: `임시 답변입니다. 입력한 질문은 "${question}"입니다.`
+        content: answer
       };
 
-      // 최신 메시지 배열 뒤에 임시 AI 답변을 추가합니다.
+      // 기존 대화 뒤에 실제 AI 답변을 추가합니다.
       setMessages((previousMessages) => [
         ...previousMessages,
         assistantMessage
       ]);
+    } catch (error) {
+      // 개발자가 상세 원인을 확인할 수 있도록 브라우저 Console에 출력합니다.
+      console.error('챗봇 요청 오류: ', error);
 
-      // 답변 추가가 끝났으므로 로딩 상태를 해제합니다.
+      // 사용자에게는 내부 예외 상세 대신 이해하기 쉬운 공통 메시지를 보여 줍니다.
+      const errorMessage = {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: '서버와 통신하는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'
+      };
+
+      setMessages((previousMessages) => [
+        ...previousMessages,
+        errorMessage
+      ]);
+    } finally {
+      // 성공·실패 여부와 관계없이 요청이 끝났으므로 로딩 상태를 해제합니다.
       setIsLoading(false);
-    }, 500);
+    }
   };
 
   return (
@@ -67,9 +93,13 @@ function App() {
           subtitle="OpenAI API + FastAPI + React"
         />
 
-        <MessageList messages={messages} />
+        {/* 최신 메시지와 API 요청 상태를 함께 전달합니다. */}
+        <MessageList
+          messages={messages}
+          isLoading={isLoading}
+        />
 
-        {/* 답변 대기 상태도 입력 컴포넌트에 전달합니다. */}
+        {/* 요청 중에는 입력과 중복 전송을 제한합니다. */}
         <ChatInput
           onSendMessage={handleSendMessage}
           isLoading={isLoading}

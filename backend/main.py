@@ -8,6 +8,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from openai import AsyncOpenAI
 from pydantic import BaseModel, Field
 
+# 여러 데이터 조각을 순차적으로 전송하는 응답 클래스를 가져옵니다.
+from fastapi.responses import StreamingResponse
+
 # ---------------------------------------------------------
 # 1. 프로젝트 설정과 .env 로드
 # ---------------------------------------------------------
@@ -155,3 +158,26 @@ async def chat(request: ChatRequest):
 
     # OpenAI SDK의 output_text에서 최종 생성 텍스트를 가져와 응답합니다.
     return ChatResponse(answer=response.output_text)
+
+
+# HTTP 스트리밍을 눈으로 확인하기 위한 교육용 비동기 제너레이터입니다.
+async def generate_stream_demo():
+    # 실제 모델 응답 대신 미리 준비한 문자열 조각을 순차적으로 생성합니다.
+    chunks = [
+        "첫 번째 데이터 조각입니다.\n",
+        "두 번째 데이터 조각입니다.\n",
+        "세 번째 데이터 조각입니다.\n",
+    ]
+
+    for chunk in chunks:
+        # yield를 이용해 현재 조각을 즉시 StreamingResponse에 전달합니다.
+        yield chunk
+
+        # 다음 조각이 전송되기 전에 0.7초 동안 비동기로 기다립니다.
+        await asyncio.sleep(0.7)
+
+
+# 일반 JSON 응답이 아니라 문자열 조각을 순차적으로 전송합니다.
+@app.get("/stream-demo")
+async def stream_demo():
+    return StreamingResponse(generate_stream_demo(), media_type="text/plain")
