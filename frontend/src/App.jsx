@@ -1,8 +1,9 @@
 // 메시지 배열과 요청 상태를 React State로 관리하기 위해 useState를 가져옵니다.
-import { useState } from 'react';
+// 최초 렌더링 이후 서버 상태를 확인하기 위해 useEffect를 추가합니다.
+import { useState, useEffect } from 'react';
 
 // FastAPI /chat 호출 로직을 별도 모듈에서 가져옵니다.
-import { sendChatMessage } from './api/chatApi';
+import { sendChatMessage, checkBackendHealth } from './api/chatApi';
 
 import './App.css';
 import ChatHeader from './components/ChatHeader';
@@ -18,7 +19,36 @@ const initialMessages = [
   }
 ];
 
+
 function App() {
+  // 백엔드 연결 상태를 화면에 표시하기 위한 State입니다.
+  const [backendStatus, setBackendStatus] = useState('확인 중');
+
+  useEffect(() => {
+    // Effect 내부에서 사용할 비동기 함수를 정의합니다.
+    const loadBackendStatus = async () => {
+      try {
+        const status = await checkBackendHealth();
+
+        // /health가 status: ok를 반환하면 연결 성공으로 표시합니다.
+        if (status === 'ok') {
+          setBackendStatus('연결됨');
+        } else {
+          setBackendStatus('연결 안 됨');
+        }
+      } catch (error) {
+        // 개발자는 Console에서 실제 연결 오류를 확인합니다.
+        console.error('서버 상태 확인 오류: ', error);
+
+        // 사용자 화면에는 간단한 연결 상태만 표시합니다.
+        setBackendStatus('연결 안 됨');
+      }
+    };
+
+    // 컴포넌트가 처음 화면에 나타난 뒤 서버 상태를 한 번 확인합니다.
+    loadBackendStatus();
+  }, []);
+  
   // 전체 대화 메시지를 배열 State로 관리합니다.
   const [messages, setMessages] = useState(initialMessages);
 
@@ -92,6 +122,9 @@ function App() {
           title="AI 학습 도우미"
           subtitle="OpenAI API + FastAPI + React"
         />
+        <p className="backend-status">
+          서버 상태: {backendStatus}
+        </p>
 
         {/* 최신 메시지와 API 요청 상태를 함께 전달합니다. */}
         <MessageList

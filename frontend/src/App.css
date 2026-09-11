@@ -197,3 +197,13 @@
 .loading-bubble {
   opacity: 0.75;
 }
+
+
+/* FastAPI 백엔드 연결 상태를 표시하는 영역입니다. */
+.backend-status {
+  margin: 0;
+  padding: 8px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 0.85rem;
+}
