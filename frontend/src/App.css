@@ -197,3 +197,21 @@
 .loading-bubble {
   opacity: 0.75;
 }
+
+
+/* 스트리밍 중인 답변의 현재 생성 위치를 표시하는 커서입니다. */
+.streaming-cursor {
+  display: inline-block;
+  width: 0.55em;
+  height: 1em;
+  margin-left: 3px;
+  vertical-align: -0.12em;
+  border-right: 2px solid currentColor;
+  animation: streaming-cursor-blink 0.8s step-end infinite;
+}
+
+@keyframes streaming-cursor-blink {
+  50% {
+    opacity: 0;
+  }
+}

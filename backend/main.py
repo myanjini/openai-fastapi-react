@@ -181,3 +181,47 @@ async def generate_stream_demo():
 @app.get("/stream-demo")
 async def stream_demo():
     return StreamingResponse(generate_stream_demo(), media_type="text/plain")
+
+
+# OpenAI Responses API의 텍스트 delta를 HTTP 스트림으로 전달합니다.
+async def generate_chat_stream(message: str):
+    try:
+        # stream=True로 최종 응답을 기다리지 않고 생성 이벤트를 순차 수신합니다.
+        stream = await client.responses.create(
+            model="gpt-5.6",
+            instructions=CHATBOT_INSTRUCTIONS,
+            input=message,
+            stream=True,
+        )
+
+        async for event in stream:
+            # 텍스트 생성 이벤트만 골라 delta를 즉시 클라이언트로 전달합니다.
+            if event.type == "response.output_text.delta":
+                delta_text = event.delta
+
+                if delta_text:
+                    yield delta_text
+
+    except asyncio.CancelledError:
+        # 클라이언트 연결이 끊기면 스트리밍 작업도 중단합니다.
+        raise
+    except Exception as exc:
+        # 스트리밍 시작 후에는 JSON 오류 응답으로 전환할 수 없어 텍스트로 오류를 전달합니다.
+        print(f"OpenAI 스트리밍 API 오류:{exc}")
+        yield "\n\n[AI 응답을 스트리밍하는 중 오류가 발생했습니다.]"
+
+
+
+from fastapi.responses import StreamingResponse
+
+@app.post("/chat/stream")
+async def chat_stream(request: ChatRequest):
+    # 중간 캐시와 버퍼링을 막아 생성된 텍스트가 가능한 즉시 브라우저에 도착하도록 합니다.
+    return StreamingResponse(
+        generate_chat_stream(request.message),
+        media_type="text/plain; charset=utf-8",
+        headers={
+            "Cache-Control": "no-cache, no-transform",
+            "X-Accel-Buffering": "no",
+        },
+    )

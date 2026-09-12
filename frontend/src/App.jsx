@@ -2,7 +2,7 @@
 import { useState } from 'react';
 
 // FastAPI /chat 호출 로직을 별도 모듈에서 가져옵니다.
-import { sendChatMessage } from './api/chatApi';
+import { sendChatMessage, sendChatStreamMessage  } from './api/chatApi';
 
 import './App.css';
 import ChatHeader from './components/ChatHeader';
@@ -24,6 +24,58 @@ function App() {
 
   // 현재 FastAPI 응답을 기다리고 있는지 관리합니다.
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleSendStreamMessage = async (question) => {
+    if (isLoading) {
+      return;
+    }
+
+    const userMessageId = Date.now();
+    const assistantMessageId = userMessageId + 1;
+
+    // 빈 AI 메시지를 먼저 추가해 이후 도착하는 청크를 같은 말풍선에 누적합니다.
+    setMessages((previousMessages) => [
+      ...previousMessages,
+      {
+        id: userMessageId,
+        role: 'user',
+        content: question
+      },
+      {
+        id: assistantMessageId,
+        role: 'assistant',
+        content: ''
+      }
+    ]);
+
+    setIsLoading(true);
+
+    try {
+      await sendChatStreamMessage(question, (chunkText) => {
+        // 새 청크가 도착할 때마다 기존 AI 메시지의 content 뒤에 즉시 이어 붙입니다.
+        setMessages(previousMessages => 
+          previousMessages.map(message => 
+            message.id === assistantMessageId ?
+              { ...message, content: message.content + chunkText }
+              : message
+          )
+        );
+      });
+    } catch (error) {
+      // 스트리밍 오류에서도 이미 받은 답변 보존
+      console.error("챗봇 스트리밍 요청 오류:", error);
+
+      setMessages(previousMessages =>
+        previousMessages.map(message => 
+          message.id === assistantMessageId ?
+            {...message, content: message.content || "서버와 통신하는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."}
+            : message
+        )
+      );      
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // ChatInput에서 사용자가 전송한 질문을 전달받아 실제 API를 호출합니다.
   const handleSendMessage = async (question) => {
@@ -101,7 +153,7 @@ function App() {
 
         {/* 요청 중에는 입력과 중복 전송을 제한합니다. */}
         <ChatInput
-          onSendMessage={handleSendMessage}
+          onSendMessage={handleSendStreamMessage}
           isLoading={isLoading}
         />
       </main>

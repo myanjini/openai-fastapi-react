@@ -12,14 +12,17 @@ function MessageList({ messages, isLoading }) {
 
   return (
     <section className="message-list" aria-label="대화 내용" aria-live="polite">
+      {/* 
       {messages.map((message) => (
         <MessageBubble
           key={message.id}
           message={message}
         />
       ))}
+      */ }
 
       {/* 서버 응답을 기다리는 동안 임시 로딩 상태를 표시합니다. */}
+      {/*
       {isLoading && (
         <div className="message-row assistant">
           <div className="message-bubble loading-bubble">
@@ -30,6 +33,17 @@ function MessageList({ messages, isLoading }) {
           </div>
         </div>
       )}
+      */}
+
+      {/* 현재 생성 중인 마지막 AI 메시지만 스트리밍 상태를 전달 */}
+      {
+        messages.map((message, index) => {
+          const isLastMessage = index === messages.length - 1;
+          const isStreaming = isLoading && isLastMessage && message.role === 'assistant';
+
+          return <MessageBubble key={message.id} message={message} isStreaming={isStreaming} />;
+        })
+      }
 
       <div ref={endOfMessagesRef} />
     </section>
